@@ -25,7 +25,7 @@ public class ReservationFrontController {
     private final String apiUrl;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public ReservationFrontController(@Value("${external.api.reservations.url:http://localhost:8081/reservations}") String apiUrl) {
+    public ReservationFrontController(@Value("${external.api.reservations.url:http://localhost:8080/test/api/reservation/list}") String apiUrl) {
         this.apiUrl = apiUrl;
     }
 
@@ -58,10 +58,59 @@ public class ReservationFrontController {
 
     private List<ReservationDto> fetchReservations() {
         try {
-            ResponseEntity<List<ReservationDto>> resp = restTemplate.exchange(apiUrl, HttpMethod.GET, null,
-                    new ParameterizedTypeReference<>() {
-                    });
-            return resp.getBody() != null ? resp.getBody() : Collections.emptyList();
+            // Call the API and handle wrapped responses like {"status":..., "data": [...]}
+            String json = restTemplate.getForObject(apiUrl, String.class);
+            if (json == null || json.isBlank()) {
+                return Collections.emptyList();
+            }
+
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode root = mapper.readTree(json);
+
+            com.fasterxml.jackson.databind.JsonNode arrayNode = root;
+            if (root.has("data") && root.get("data").isArray()) {
+                arrayNode = root.get("data");
+            } else if (root.has("reservations") && root.get("reservations").isArray()) {
+                arrayNode = root.get("reservations");
+            }
+
+            if (!arrayNode.isArray()) {
+                return Collections.emptyList();
+            }
+
+            List<ReservationDto> list = new java.util.ArrayList<>();
+            for (com.fasterxml.jackson.databind.JsonNode node : arrayNode) {
+                ReservationDto dto = new ReservationDto();
+                // id can be named idReservation or id
+                if (node.has("idReservation")) dto.setId(node.path("idReservation").asLong());
+                else if (node.has("id")) dto.setId(node.path("id").asLong());
+
+                // customer name may be idClient or customerName
+                if (node.has("idClient")) dto.setCustomerName(node.path("idClient").asText());
+                else dto.setCustomerName(node.path("customerName").asText(null));
+
+                // hotel name may be nested
+                if (node.has("hotel") && node.get("hotel").has("nom")) {
+                    dto.setHotelName(node.get("hotel").path("nom").asText());
+                } else {
+                    dto.setHotelName(node.path("hotelName").asText(null));
+                }
+
+                // arrival date: dateHeureArrive like 2026-02-06T18:35 -> take date part
+                if (node.has("dateHeureArrive")) {
+                    String s = node.path("dateHeureArrive").asText(null);
+                    if (s != null && s.length() >= 10) {
+                        dto.setArrivalDate(LocalDate.parse(s.substring(0, 10)));
+                    }
+                } else if (node.has("arrivalDate")) {
+                    String s = node.path("arrivalDate").asText(null);
+                    if (s != null && s.length() >= 10) dto.setArrivalDate(LocalDate.parse(s.substring(0, 10)));
+                }
+
+                list.add(dto);
+            }
+
+            return list;
         } catch (Exception e) {
             return Collections.emptyList();
         }

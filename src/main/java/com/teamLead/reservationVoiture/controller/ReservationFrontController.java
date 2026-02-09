@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,15 +98,31 @@ public class ReservationFrontController {
                     dto.setHotelName(node.path("hotelName").asText(null));
                 }
 
-                // arrival date: dateHeureArrive like 2026-02-06T18:35 -> take date part
+                // arrival date/time: dateHeureArrive like 2026-02-06T18:35
                 if (node.has("dateHeureArrive")) {
                     String s = node.path("dateHeureArrive").asText(null);
-                    if (s != null && s.length() >= 10) {
-                        dto.setArrivalDate(LocalDate.parse(s.substring(0, 10)));
+                    if (s != null && !s.isBlank()) {
+                        try {
+                            LocalDateTime ldt = LocalDateTime.parse(s);
+                            dto.setArrivalDateTime(ldt);
+                            dto.setArrivalDate(ldt.toLocalDate());
+                        } catch (DateTimeParseException ex) {
+                            if (s.length() >= 10) {
+                                dto.setArrivalDate(LocalDate.parse(s.substring(0, 10)));
+                            }
+                        }
                     }
                 } else if (node.has("arrivalDate")) {
                     String s = node.path("arrivalDate").asText(null);
-                    if (s != null && s.length() >= 10) dto.setArrivalDate(LocalDate.parse(s.substring(0, 10)));
+                    if (s != null && !s.isBlank()) {
+                        try {
+                            LocalDateTime ldt = LocalDateTime.parse(s);
+                            dto.setArrivalDateTime(ldt);
+                            dto.setArrivalDate(ldt.toLocalDate());
+                        } catch (DateTimeParseException ex) {
+                            if (s.length() >= 10) dto.setArrivalDate(LocalDate.parse(s.substring(0, 10)));
+                        }
+                    }
                 }
 
                 list.add(dto);

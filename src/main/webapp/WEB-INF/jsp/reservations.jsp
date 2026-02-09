@@ -29,7 +29,7 @@
         <th>ID</th>
         <th>Client</th>
         <th>Hôtel</th>
-        <th>Date d'arrivée</th>
+        <th>Date & heure d'arrivée</th>
     </tr>
     </thead>
     <tbody>
@@ -42,7 +42,23 @@
             <td><%= r.getId() %></td>
             <td><%= r.getCustomerName() %></td>
             <td><%= r.getHotelName() %></td>
-            <td><%= r.getArrivalDate() %></td>
+            <td>
+                <%
+                    java.time.LocalDateTime ldt = null;
+                    if (r.getArrivalDateTime() != null) ldt = r.getArrivalDateTime();
+                    else if (r.getArrivalDate() != null) ldt = r.getArrivalDate().atStartOfDay();
+                    if (ldt != null) {
+                        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                %>
+                    <%= ldt.format(fmt) %>
+                <%
+                    } else {
+                %>
+                    -
+                <%
+                    }
+                %>
+            </td>
         </tr>
     <%      }
         } else { %>

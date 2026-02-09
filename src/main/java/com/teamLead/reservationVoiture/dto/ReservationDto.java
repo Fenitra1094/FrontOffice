@@ -1,6 +1,7 @@
 package com.teamLead.reservationVoiture.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ReservationDto {
 
@@ -9,6 +10,8 @@ public class ReservationDto {
     private String hotelName;
     // arrival date only (DateHeureArrive in DB)
     private LocalDate arrivalDate;
+    // full arrival date-time if provided by API (dateHeureArrive)
+    private LocalDateTime arrivalDateTime;
 
     public ReservationDto() {
     }
@@ -43,5 +46,13 @@ public class ReservationDto {
 
     public void setArrivalDate(LocalDate arrivalDate) {
         this.arrivalDate = arrivalDate;
+    }
+
+    public LocalDateTime getArrivalDateTime() {
+        return arrivalDateTime;
+    }
+
+    public void setArrivalDateTime(LocalDateTime arrivalDateTime) {
+        this.arrivalDateTime = arrivalDateTime;
     }
 }

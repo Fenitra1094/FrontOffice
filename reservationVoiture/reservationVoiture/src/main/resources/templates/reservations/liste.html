@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Réservations - FrontOffice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+        }
+
+        .filter-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .clear-filter {
+            background-color: #6c757d;
+        }
+
+        .clear-filter:hover {
+            background-color: #545b62;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .info-message {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background-color: #007bff;
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Liste des Réservations</h1>
+
+        <!-- Message d'erreur -->
+        <div th:if="${error}" class="error-message">
+            <strong>⚠️ Erreur :</strong> <span th:text="${error}"></span>
+        </div>
+
+        <!-- Message d'info -->
+        <div th:if="${filteredDate}" class="info-message">
+            📅 Résultats filtrés pour la date : <strong th:text="${filteredDate}"></strong>
+        </div>
+
+        <!-- Section Filtre -->
+        <div class="filter-section">
+            <form method="get" class="filter-form">
+                <div class="form-group">
+                    <label for="date">Filtrer par date d'arrivée :</label>
+                    <input type="date" id="date" name="date" th:value="${filteredDate}">
+                </div>
+                <button type="submit">🔍 Rechercher</button>
+                <a href="/reservations/liste" style="padding: 10px 25px; background-color: #6c757d; color: white; border-radius: 4px; text-decoration: none;">Réinitialiser</a>
+            </form>
+        </div>
+
+        <!-- Tableau des Réservations -->
+        <div th:if="${reservations.size() > 0}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ID Client</th>
+                        <th>Nombre de Passagers</th>
+                        <th>Date/Heure d'Arrivée</th>
+                        <th>Hôtel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="reservation : ${reservations}">
+                        <td th:text="${reservation.id}">-</td>
+                        <td th:text="${reservation.idClient}">-</td>
+                        <td th:text="${reservation.nbPassager}">-</td>
+                        <td th:text="${reservation.dateHeureArrivee}">-</td>
+                        <td th:text="${reservation.nomHotel}">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Message "Pas de données" -->
+        <div th:if="${reservations.size() == 0}" class="no-data">
+            ℹ️ Aucune réservation trouvée. Essayez de modifier vos critères de recherche.
+        </div>
+
+        <div class="footer">
+            <p>FrontOffice - Système de Réservation Voiture | Sprint 1 - Février 2026</p>
+            <p>Cette page affiche les données du BackOffice via l'API REST</p>
+        </div>
+    </div>
+</body>
+</html>
